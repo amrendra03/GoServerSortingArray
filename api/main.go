@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 )
@@ -57,6 +58,47 @@ func processSingle(c *gin.Context) {
 	}
 
 	// response struct send in response in JSON formate
+	c.JSON(http.StatusOK, res)
+
+}
+
+// --------process concurrent
+func processConcurrent(c *gin.Context) {
+	var req SortRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+		return
+	}
+
+	// sync using fo concurrent processing
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+
+	sortedArrays := make([][]int, len(req.ToSort))
+
+	// sorting
+	for i, arr := range req.ToSort {
+		wg.Add(1)
+		go func(i int, arr []int) {
+			defer wg.Done()
+			sortedArr := make([]int, len(arr))
+			copy(sortedArr, arr)
+			sort.Ints(sortedArr)
+
+			mu.Lock()
+			sortedArrays[i] = sortedArr
+			mu.Unlock()
+		}(i, arr)
+	}
+	wg.Wait()
+
+	// data binding
+	res := SortResponse{
+		SortedArrays: sortedArrays,
+		TimeNS:       0,
+	}
+
+	// send response
 	c.JSON(http.StatusOK, res)
 
 }
