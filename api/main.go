@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"sort"
 	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -43,6 +44,9 @@ func processSingle(c *gin.Context) {
 		return
 	}
 
+	// calculating time duration
+	startTime := time.Now()
+
 	// performing sorting
 	sortedArrays := make([][]int, len(req.ToSort))
 	for i, arr := range req.ToSort {
@@ -53,10 +57,11 @@ func processSingle(c *gin.Context) {
 		sortedArrays[i] = sortedArr
 	}
 
+	duration := time.Since(startTime)
 	// bind result into struct
 	res := SortResponse{
 		SortedArrays: sortedArrays,
-		TimeNS:       0,
+		TimeNS:       duration.Nanoseconds(),
 	}
 
 	// response struct send in response in JSON formate
@@ -71,6 +76,8 @@ func processConcurrent(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
 		return
 	}
+
+	startTime := time.Now()
 
 	// sync using fo concurrent processing
 	var wg sync.WaitGroup
@@ -94,10 +101,11 @@ func processConcurrent(c *gin.Context) {
 	}
 	wg.Wait()
 
+	duration := time.Since(startTime)
 	// data binding
 	res := SortResponse{
 		SortedArrays: sortedArrays,
-		TimeNS:       0,
+		TimeNS:       duration.Nanoseconds(),
 	}
 
 	// send response
