@@ -25,6 +25,10 @@ func main() {
 	router := gin.Default()
 	port := 8000
 
+	router.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"message": "Welcome to Soting Array"})
+	})
+
 	// route
 	router.POST("/process-single", processSingle)
 	router.POST("/process-concurrent", processConcurrent)
