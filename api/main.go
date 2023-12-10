@@ -6,6 +6,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type SortRequest struct {
+	ToSort [][]int `json:"to_sort"`
+}
+
+type SortResponse struct {
+	SortedArrays [][]int `json:"sorted_arrays"`
+	TimeNS       int64   `json:"time_ns"`
+}
+
 func main() {
 	fmt.Println("Starting...")
 
